@@ -21,6 +21,10 @@ class ACMain : AppCompatActivity(), AdapterCrypto.Listener {
 
     private var job : Job? = null
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("Error: ${throwable.localizedMessage}")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ac_main)
@@ -37,7 +41,7 @@ class ACMain : AppCompatActivity(), AdapterCrypto.Listener {
             .build().
             create(CryptoAPI::class.java)
 
-        job = CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
 
             val response = retrofit.getData()
 
@@ -45,8 +49,8 @@ class ACMain : AppCompatActivity(), AdapterCrypto.Listener {
                 if(response.isSuccessful) {
                     response.body()?.let {
                         cryptoModels = ArrayList(it)
-                        cryptoModels?.let {
-                            adapterCrypto = AdapterCrypto(it,this@ACMain)
+                        cryptoModels?.let { arrayList ->
+                            adapterCrypto = AdapterCrypto(arrayList,this@ACMain)
                             rvCrypto.adapter = adapterCrypto
                         }
                     }
